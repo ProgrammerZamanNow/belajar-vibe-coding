@@ -16,7 +16,12 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       name: t.String({ minLength: 3, maxLength: 255 }),
       email: t.String({ format: "email", maxLength: 255 }),
       password: t.String({ minLength: 6, maxLength: 255 }),
-    })
+    }),
+    detail: {
+      tags: ["Users"],
+      summary: "Register User Baru",
+      description: "Mendaftarkan pengguna baru ke sistem dengan email yang unik",
+    },
   })
   .post("/login", async ({ body, set }) => {
     try {
@@ -31,7 +36,12 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
     body: t.Object({
       email: t.String({ format: "email", maxLength: 255 }),
       password: t.String({ maxLength: 255 }),
-    })
+    }),
+    detail: {
+      tags: ["Users"],
+      summary: "Login User",
+      description: "Melakukan otentikasi pengguna dan mengembalikan token sesi",
+    },
   })
   .guard({
     beforeHandle: ({ headers, set }) => {
@@ -65,6 +75,13 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       const message = error.message?.includes("Failed query") ? "Unauthorized" : error.message;
       return { error: message || "Unauthorized" };
     }
+  }, {
+    detail: {
+      tags: ["Users"],
+      summary: "Get Current User",
+      description: "Mengambil data profil pengguna yang sedang login berdasarkan token Bearer",
+      security: [{ bearerAuth: [] }],
+    },
   })
   .delete("/logout", async ({ token, set }) => {
     try {
@@ -75,4 +92,11 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       const message = error.message?.includes("Failed query") ? "Unauthorized" : error.message;
       return { error: message || "Unauthorized" };
     }
+  }, {
+    detail: {
+      tags: ["Users"],
+      summary: "Logout User",
+      description: "Mengakhiri sesi pengguna aktif dan menghapus token dari database",
+      security: [{ bearerAuth: [] }],
+    },
   });
