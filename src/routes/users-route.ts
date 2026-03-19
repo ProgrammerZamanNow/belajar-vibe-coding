@@ -31,16 +31,25 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       password: t.String(),
     })
   })
-  .get("/current", async ({ headers, set }) => {
-    try {
+  .guard({
+    beforeHandle: ({ headers, set }) => {
       const auth = headers["authorization"];
       if (!auth || !auth.startsWith("Bearer ")) {
-        throw new Error("Unauthorized");
+        set.status = 401;
+        return { error: "Unauthorized" };
       }
-
-      const token = auth.split(" ")[1] ?? "";
+    }
+  })
+  .derive(({ headers }) => {
+    const auth = headers["authorization"];
+    if (!auth || !auth.startsWith("Bearer ")) {
+      return { token: "" };
+    }
+    return { token: auth.split(" ")[1] ?? "" };
+  })
+  .get("/current", async ({ token, set }) => {
+    try {
       const user = await UsersService.getCurrentUser(token);
-
       return {
         data: {
           id: user.id,
@@ -49,6 +58,15 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
           created_at: user.createdAt,
         },
       };
+    } catch (error: any) {
+      set.status = 401;
+      return { error: error.message || "Unauthorized" };
+    }
+  })
+  .delete("/logout", async ({ token, set }) => {
+    try {
+      await UsersService.logoutUser(token);
+      return { data: "OK" };
     } catch (error: any) {
       set.status = 401;
       return { error: error.message || "Unauthorized" };
