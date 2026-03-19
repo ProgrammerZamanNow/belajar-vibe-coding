@@ -8,13 +8,14 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       return { data: "OK" };
     } catch (error: any) {
       set.status = 400;
-      return { error: error.message || "Terjadi kesalahan" };
+      const message = error.message?.includes("Failed query") ? "Terjadi kesalahan" : error.message;
+      return { error: message || "Terjadi kesalahan" };
     }
   }, {
     body: t.Object({
-      name: t.String(),
-      email: t.String({ format: "email" }),
-      password: t.String(),
+      name: t.String({ minLength: 3, maxLength: 255 }),
+      email: t.String({ format: "email", maxLength: 255 }),
+      password: t.String({ minLength: 6, maxLength: 255 }),
     })
   })
   .post("/login", async ({ body, set }) => {
@@ -23,12 +24,13 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       return { data: token };
     } catch (error: any) {
       set.status = 401;
-      return { error: error.message || "Email atau password salah" };
+      const message = error.message?.includes("Failed query") ? "Email atau password salah" : error.message;
+      return { error: message || "Email atau password salah" };
     }
   }, {
     body: t.Object({
-      email: t.String({ format: "email" }),
-      password: t.String(),
+      email: t.String({ format: "email", maxLength: 255 }),
+      password: t.String({ maxLength: 255 }),
     })
   })
   .guard({
@@ -60,7 +62,8 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       };
     } catch (error: any) {
       set.status = 401;
-      return { error: error.message || "Unauthorized" };
+      const message = error.message?.includes("Failed query") ? "Unauthorized" : error.message;
+      return { error: message || "Unauthorized" };
     }
   })
   .delete("/logout", async ({ token, set }) => {
@@ -69,6 +72,7 @@ export const usersRoute = new Elysia({ prefix: "/api/users" })
       return { data: "OK" };
     } catch (error: any) {
       set.status = 401;
-      return { error: error.message || "Unauthorized" };
+      const message = error.message?.includes("Failed query") ? "Unauthorized" : error.message;
+      return { error: message || "Unauthorized" };
     }
   });
