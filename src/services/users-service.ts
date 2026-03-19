@@ -26,6 +26,26 @@ export class UsersService {
     return token;
   }
 
+  static async getCurrentUser(token: string) {
+    const session = await db.query.sessions.findFirst({
+      where: eq(sessions.token, token),
+    });
+
+    if (!session) {
+      throw new Error("Unauthorized");
+    }
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, session.userId),
+    });
+
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    return user;
+  }
+
   static async register(name: string, email: string, pass: string) {
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email),
